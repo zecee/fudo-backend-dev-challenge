@@ -1,0 +1,226 @@
+openapi: 3.0.0
+info:
+  title: Fudo Backend Dev Challenge
+  version: 1.0.0
+  description: API that allows user registration, authentication, and access and creation of products.
+servers:
+  - url: http://localhost:4567/api/v1
+
+paths:
+  /openapi:
+    get:
+      summary: Get OpenAPI specification
+      description: Returns the API specification in YAML format. This file must never be cached.
+      responses:
+        '200':
+          description: OpenAPI specification file
+          headers:
+            Cache-Control:
+              description: Prevents caching of the specification file
+              schema:
+                type: string
+                example: no-store, no-cache, must-revalidate, max-age=0
+            Pragma:
+              description: For HTTP/1.0 compatibility, prevents caching
+              schema:
+                type: string
+                example: no-cache
+            Expires:
+              description: Forces the resource to be treated as immediately expired
+              schema:
+                type: string
+                example: '0'
+          content:
+            text/yaml:
+              schema:
+                type: string
+
+  /authors:
+    get:
+      summary: Get AUTHORS file
+      description: Returns a plain text file with author information. This file is cacheable for 24 hours.
+      responses:
+        '200':
+          description: AUTHORS file content
+          headers:
+            Cache-Control:
+              description: Caching policy for this resource
+              schema:
+                type: string
+                example: public, max-age=86400
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulMessage'
+        '400':
+          description: Invalid or already existing user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /auth:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulMessage'
+        '400':
+          description: Malformed body or missing fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /logout:
+    post:
+      summary: Log out the current user
+      responses:
+        '200':
+          description: Session closed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulMessage'
+
+  /products:
+    get:
+      summary: Get product list (requires session)
+      security:
+        - SessionCookie: []
+      parameters:
+        - in: query
+          name: gzip
+          schema:
+            type: string
+            enum: ['true']
+          description: If set to `true`, returns the JSON compressed in a .gz file
+      responses:
+        '200':
+          description: Product list (JSON or Gzip)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+    post:
+      summary: Create a new product (asynchronously)
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct'
+      responses:
+        '202':
+          description: Creation in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulMessage'
+        '400':
+          description: Malformed body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '401':
+          description: Unauthorized user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+components:
+  schemas:
+    UserCredentials:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    NewProduct:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    SuccessfulMessage:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ErrorMessage:
+      type: object
+      properties:
+        error:
+          type: string
+
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: rack.session

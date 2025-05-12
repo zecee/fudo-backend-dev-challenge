@@ -1,4 +1,7 @@
 # Fudo Backend Dev Challenge
+![Tests](https://github.com/zecee/fudo-backend-dev-challenge/actions/workflows/test.yml/badge.svg)
+![Ruby version](https://img.shields.io/badge/ruby-3.4.2-blue)
+![API Version](https://img.shields.io/badge/api%20version-v1-green)
 
 Implementación de API en Ruby utilizando Sinatra y Rack, siguiendo los requerimientos del desafío técnico propuesto por Fudo.
 

@@ -1,0 +1,1 @@
+Es un protocolo de capa de aplicación, sin estado, basado en un modelo cliente servidor, funciona sobre TCP. Define métodos (GET, POST, etc.), cabeceras y códigos de estado para transferir o pedir recursos identificados por una URI

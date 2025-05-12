@@ -1,0 +1,1 @@
+Es un protocolo de transporte orientado a conexiones que permite transmitir datos a través de redes, dividiendo la información en paquetes y asegurando que lleguen completos y en orden al destinatario, protocolos como HTTP  funcionan sobre TCP para enviar y recibir información.
